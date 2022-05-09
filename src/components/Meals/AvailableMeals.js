@@ -1,43 +1,62 @@
+import { useEffect, useState } from "react";
 import classes from "./AvailableMeals.module.css";
 import Card from "../UI/Card";
 import MealItem from "./MealsItem/MealItem";
 
-const PIZZAS = [
-    {
-      id: 'm1',
-      name: 'Prosciutto',
-      description: 'tomato souce, mozzarella, ham',
-      price: 22.99,
-    },
-    {
-      id: 'm2',
-      name: 'Margherita',
-      description: 'tomato souce, mozzarella',
-      price: 16.5,
-    },
-    {
-      id: 'm3',
-      name: 'Capricciosa',
-      description: 'tomato souce, mozzarella, ham, mashrooms',
-      price: 24.99,
-    },
-    {
-      id: 'm4',
-      name: 'Pepperoni',
-      description: 'tomato souce, mozzarella, pepperoni',
-      price: 25.99,
-    },
-    {
-      id: '5m',
-      name: 'Ricotta',
-      description: 'tomato souce, mozzarella, spianata picante, ricotta, pepperoncino',
-      price: 29.99,
+
+const AvailableMeals =()=>{
+     
+  const[meals,setMeals] = useState([]);
+  const[isLoading, setIsLoading] = useState(true);
+  const[error,setError] = useState();
+
+
+  useEffect(()=>{
+    const fetchPizzas = async() =>{
+      const response = await fetch('https://pizza-app-c1b1f-default-rtdb.firebaseio.com/pizzas.json');
+
+      if(!response.ok){
+        throw new Error('Something went wrong!')
+      }
+      const responseData = await response.json();
+
+      const loadedPizzas = [];
+
+      for(const key in responseData) {
+        loadedPizzas.push({
+          id: key, 
+          name: responseData[key].name,
+          description: responseData[key].description,
+          price: responseData[key].price
+          });
+        }
+          setMeals(loadedPizzas);
+          setIsLoading(false);
+      };
+
+      
+        fetchPizzas().catch((error)=>{
+          setIsLoading(false);
+          setError(error.message);
+        });  
+    },[]);
+
+    if(isLoading){
+      return(
+        <section className={classes.MealsLoading}>
+          <p>Loading...</p>
+        </section>
+      )
+    };
+    if(error){
+      return(
+        <section className={classes.MealsError}>
+          <p>{error}</p>
+        </section>
+      )
     }
-  ];
 
-  const AvailableMeals =()=>{
-
-    const mealsList = PIZZAS.map(meal =>
+    const mealsList = meals.map(meal =>
         <MealItem
             key={meal.id}
             id={meal.id}
